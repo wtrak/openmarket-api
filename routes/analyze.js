@@ -6,10 +6,10 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
-console.log("🧾 Incoming body:", req.body);
-
 router.post('/', async (req, res) => {
   console.log("✅ POST /analyze hit");
+  console.log("🧾 Incoming body:", req.body);  // <-- moved inside the handler
+
   try {
     const base64 = req.body.imageBase64;
     const prompt = `List all the individual items shown in this image as separate objects for sale at a flea market. For each, give a short title, category, 1-sentence description, and estimated price.`;
@@ -24,7 +24,7 @@ router.post('/', async (req, res) => {
             {
               type: 'image_url',
               image_url: {
-                image_base64: base64.split(',')[1]  // ✅ correct format
+                image_base64: base64?.split(',')[1] || ''
               }
             }
           ]
@@ -34,7 +34,6 @@ router.post('/', async (req, res) => {
 
     const text = response.choices[0].message.content;
 
-    // Attempt to extract structured JSON if available
     const jsonStart = text.indexOf('{');
     const jsonEnd = text.lastIndexOf('}');
     let items = [];
