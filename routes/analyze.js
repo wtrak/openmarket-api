@@ -1,41 +1,50 @@
-import express from "express";
-import OpenAI from "openai";
-
+import express from 'express';
+import { OpenAI } from 'openai';
 const router = express.Router();
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-router.post("/", async (req, res) => {
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
+
+router.post('/analyze', async (req, res) => {
   try {
-    const { imageBase64 } = req.body;
+    const base64 = req.body.image;
+    const prompt = `List all the individual items shown in this image as separate objects for sale at a flea market. For each, give a short title, category, 1-sentence description, and estimated price.`;
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: 'gpt-4o',
       messages: [
         {
-          role: "system",
-          content: "You are an assistant that analyzes photos of flea market booths and generates an inventory of visible items. Return a JSON array with item titles, categories, descriptions, and estimated prices."
-        },
-        {
-          role: "user",
+          role: 'user',
           content: [
-            { type: "text", text: "Analyze this booth photo and generate the item inventory." },
+            { type: 'text', text: prompt },
             {
-              type: "image_url",
+              type: 'image_url',
               image_url: {
-                url: `data:image/jpeg;base64,${imageBase64}`
+                image_base64: base64.split(',')[1]  // ✅ correct format
               }
             }
           ]
         }
-      ],
-      max_tokens: 1000
+      ]
     });
 
-    const reply = response.choices[0]?.message?.content;
-    res.json({ result: reply });
+    const text = response.choices[0].message.content;
+
+    // Attempt to extract structured JSON if available
+    const jsonStart = text.indexOf('{');
+    const jsonEnd = text.lastIndexOf('}');
+    let items = [];
+
+    if (jsonStart !== -1 && jsonEnd !== -1) {
+      const json = text.slice(jsonStart, jsonEnd + 1);
+      items = JSON.parse(json).items || [];
+    }
+
+    res.json({ items });
   } catch (err) {
-    console.error("Error:", err);
-    res.status(500).json({ error: "Failed to analyze image" });
+    console.error(err);
+    res.status(500).json({ error: 'AI failed to return items.' });
   }
 });
 
