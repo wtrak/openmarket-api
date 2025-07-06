@@ -6,7 +6,8 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
-router.post('/analyze', async (req, res) => {
+router.post('/', async (req, res) => {
+  console.log("✅ POST /analyze hit");
   try {
     const base64 = req.body.image;
     const prompt = `List all the individual items shown in this image as separate objects for sale at a flea market. For each, give a short title, category, 1-sentence description, and estimated price.`;
