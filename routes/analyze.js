@@ -6,6 +6,8 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
+console.log("🧾 Incoming body:", req.body);
+
 router.post('/', async (req, res) => {
   console.log("✅ POST /analyze hit");
   try {
