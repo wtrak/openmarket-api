@@ -9,7 +9,7 @@ const openai = new OpenAI({
 router.post('/', async (req, res) => {
   console.log("✅ POST /analyze hit");
   try {
-    const base64 = req.body.image;
+    const base64 = req.body.imageBase64;
     const prompt = `List all the individual items shown in this image as separate objects for sale at a flea market. For each, give a short title, category, 1-sentence description, and estimated price.`;
 
     const response = await openai.chat.completions.create({
